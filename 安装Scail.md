@@ -1,4 +1,210 @@
-# Scail 模型
+# 安装Scail-pose库
+
+## 安装 mmpose
+
+```bat
+# 手动编译 mmcv main分支，支持 cuda 12.8
+# cuda 12.8 需要安装 https://developer.nvidia.com/cuda-12-8-0-download-archive?target_os=Windows&target_arch=x86_64
+#			置顶环境变量  
+#						C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin
+#						C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\lib\x64
+#			修改系统变量
+#						CUDA_HOME：值改为 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8
+#						CUDACXX：值改为 C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.8\bin\nvcc.exe
+
+
+conda deactivate
+conda env remove -n openmmlab -y
+
+# ---------------- 5090（sm_120） need cu128  -------------- sm: 流多处理器（Streaming Multiprocessor
+# 5090 --------> PyTorch 2.7.0 是首个正式提供 CUDA 12.8 预编译包的稳定版
+#           显卡对应架构  CUDA GPU Compute Capability
+#           https://pytorch.org/get-started/previous-versions/  查询对应的命令
+#			https://download.pytorch.org/whl/cu128/torch/ 查询cu版本下的whl
+#      		torch-2.10.0+cu128-cp310-cp310-manylinux_2_28_x86_64.whl  其中cp310-cp310 指的是 cpython从3.10到3.10
+# 建议使用 python>=3.10，以保证与 SAMURAI 的兼容性
+# SAM2 need python>=3.10, as well as torch>=2.3.1
+conda create --name openmmlab python=3.10 -y
+conda activate openmmlab
+
+pip install numpy==1.26.4
+		pip list | findstr numpy
+
+# conda install pytorch torchvision -c pytorch
+
+# 5090 要求 torch 2.7.0 & cu28
+pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
+		# 先不考虑 SAM2 的问题了（torch2.3.1），先用 torch2.1.0 cu121 mmcv2.1 mmdet 3.3
+		pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+		pip install torch==2.1.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+		pip install torch==2.3.1 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+		pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121
+		pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+		# pytorch 2.10.0+cu130
+		pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
+
+# openmim 是 OpenMMLab 官方推出的包管理与环境配置工具
+# 0.3.9
+pip install -U openmim
+		# 0.10.7
+        mim install mmengine
+		mim install mmengine==0.10.4
+		
+pip install mmengine==0.10.4 opencv-python==4.8.1.78 numpy==1.26.4 packaging==24.0 rich==13.4.2
+		
+
+        # see https://github.com/open-mmlab/mmdetection/discussions/12062
+        pip install --extra-index-url https://miropsota.github.io/torch_packages_builder mmcv==2.2.0+pt2.7.0cu128 mmdeploy mmdet mmengine
+
+pip install --extra-index-url https://miropsota.github.io/torch_packages_builder mmcv==2.2.0+pt2.7.0cu128 
+                ########## mmdet 2.x <=> mmpose 0.x <=> mmcv 1.x
+                ########## mmdet 3.x <=> mmpose 1.x <=> mmcv 2.x
+                # mim install "mmcv>=2.0.1"   current 2.2.0
+                # https://mmcv.readthedocs.io/en/latest/get_started/installation.html#install-with-pip  torch2.3 need mmcv 2.2.0
+                # windows：
+                #      cuda 12.1   torch 2.1  mmcv 2.1 | mmcv 2.2
+                #      cuda 12.1   torch 2.2  mmcv 2.2
+                #      cuda 12.1   torch 2.3  mmcv 2.2
+                # mmdet 3.2.0 need  mmcv < 2.2.0
+                # mmdet 3.3.0 need  mmcv < 2.2.0
+                # mmpose 1.3.2 need mmdet 3.2.0
+
+            pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.1/index.html
+                    mim install mmcv==2.1.0  
+            # mim install "mmdet>=3.1.0"  current 3.3.0
+                    mim install mmdet==3.2.0
+            mim install mmdet==3.3.0
+            
+            
+# 开发分支安装  mmdet 3x
+mkdir mmdet
+git clone -b dev-3.x https://github.com/open-mmlab/mmdetection.git
+cd mmdetection
+pip install -r requirements/build.txt
+pip install -r requirements/runtime.txt
+pip install -e . --no-build-isolation	# -e 编辑模式，源代码本地安装 --no-build-isolation 禁用构建隔离
+
+
+# Best Practices （Build MMPose from source）
+git clone https://github.com/open-mmlab/mmpose.git
+cd mmpose
+pip install -r requirements.txt
+# -e 指的是不打包，直接软链接指向源代码目录
+pip install -v -e .
+
+            # ??? 用源码，先手动安装 chumpy
+            pip install chumpy --no-build-isolation
+            pip install -r requirements.txt
+            pip install -v -e .
+            
+			mim install "mmpose>=1.1.0"
+            
+
+# 测试是否安装正确
+mim download mmpose --config td-hm_hrnet-w48_8xb32-210e_coco-256x192  --dest .
+# 测试失败，numpy.ndarray size changed
+# numpy 2.2.6 && opencv-python 4.13.0.90 requires numpy>=2 ---------------- 1.26.4 == 4.9.0.80.
+			pip install numpy==2.2.6 opencv-python==4.13.0.90
+			pip install numpy==1.26.4 opencv-python==4.9.0.80
+
+        # 从源码安装xtcocoapi（包含xtcocotools）解决兼容性问题
+        pip uninstall xtcocotools
+        pip install git+https://github.com/jin-s13/xtcocoapi
+
+                    pip uninstall -y numpy
+                    pip cache purge
+                    pip install numpy==1.26.4 --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple
+                    
+# 修改 mmengine/runner/checkpoint.py 348行
+# TODO 直接修改 ~/miniconda3/envs/your_env/lib/python3.10/site-packages/ 变成 猴子补丁 或 本地覆盖
+checkpoint = torch.load(filename, map_location=map_location, weights_only=False)
+
+# torch版本不能过高，否则报错 ModuleNotFoundError: No module named 'mmcv._ext'
+#pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121
+        pip install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+
+		pip install mmcv==2.2.0 -f https://download.openmmlab.com/mmcv/dist/cu121/torch2.3/index.html
+        
+        # 1. 卸载当前numpy 2.2.6
+        pip uninstall -y numpy
+
+        # 2. 安装numpy 1.26.4（核心降级）
+        pip install numpy==1.26.4 --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+        # 3. 降级opencv-python到兼容版本（解决其要求numpy≥2的冲突）
+        pip uninstall -y opencv-python
+        pip install opencv-python==4.8.1.78 --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+python demo/image_demo.py tests/data/coco/000000000785.jpg td-hm_hrnet-w48_8xb32-210e_coco-256x192.py td-hm_hrnet-w48_8xb32-210e_coco-256x192-0e67c616_20220913.pth --out-file vis_results.jpg --draw-heatmap
+```
+
+## 安装 scail-pose
+
+```bat
+# 进入 scail_pos 目录
+cd scail_pos/
+
+# 适配 numpy 1
+pip install opencv-python-headless==4.11.0.86
+
+# 安装依赖
+pip install -r requirements.txt
+
+# git clone sam2
+git clone https://github.com/facebookresearch/sam2.git && cd sam2
+pip install -e .
+cd ..
+
+# openxlab 0.0.38 requires tqdm~=4.65.0
+# sam-2 1.0 requires tqdm>=4.66.1
+??? 强制使用 tqdm 4.66.1 ????
+
+# YOLOX: 目标检测模型，负责定位画面中的人体，旷视科技（Megvii），PyTorch 训练，
+# DWPose：MMPose 官方主推的轻量型 2D 姿态模型
+# NLFPose：MMPose 项目下针对 3D 人体姿态重建的子模型
+# wget 需要放入对应环境的Scrpits下
+#        pretrained_weights/
+#        ├── nlf_l_multi_0.3.2.torchscript
+#        └── DWPose/
+#            ├── dw-ll_ucoco_384.onnx
+#            └── yolox_l.onnx
+mkdir pretrained_weights && cd pretrained_weights
+wget https://github.com/isarandi/nlf/releases/download/v0.3.2/nlf_l_multi_0.3.2.torchscript
+mkdir DWPose
+wget -O DWPose/dw-ll_ucoco_384.onnx https://huggingface.co/yzd-v/DWPose/resolve/main/dw-ll_ucoco_384.onnx
+wget -O DWPose/yolox_l.onnx https://huggingface.co/yzd-v/DWPose/resolve/main/yolox_l.onnx
+cd ..
+
+# 下载 sam2 模型权重
+cd sam2/checkpoints 
+echo "Downloading sam2.1_hiera_tiny.pt checkpoint..."
+wget https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_tiny.pt
+echo "Downloading sam2.1_hiera_small.pt checkpoint..."
+wget https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_small.pt
+echo "Downloading sam2.1_hiera_base_plus.pt checkpoint..."
+wget https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt
+echo "Downloading sam2.1_hiera_large.pt checkpoint..
+wget https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_large.pt
+
+# TODO 安装 mediapipe，可选的，可以不安装？？？
+pip install mediapipe numpy=1.26.4
+
+```
+
+## 使用 scail-pose
+
+```bat
+# Default Extraction & Rendering:
+python NLFPoseExtract/process_pose.py --subdir <path_to_the_example_pair> --resolution 512 896
+# Extraction & Rendering using 3D Retarget:
+python NLFPoseExtract/process_pose.py --subdir <path_to_the_example_pair> --use_align --resolution 512 896
+# Multi-Human Extraction & Rendering:
+python NLFPoseExtract/process_pose_multi.py --subdir <path_to_the_example_pair> --resolution 512 896
+```
+
+
+
+# 安装 Scail 大模型
 
 https://huggingface.co/zai-org/SCAIL-Preview/tree/main
 
@@ -73,30 +279,6 @@ SCAIL-Preview/
      ```
 
 ### 安装14B模型，通过 HuggingFace
-
-~~配置 git 代理~~
-
-```bat
-# 配置 HTTPS 代理（核心，对应 443 端口访问）
-git config --global http.https://huggingface.co.proxy http://127.0.0.1:7890
-git config --global https.https://huggingface.co.proxy http://127.0.0.1:7890
-
-# （可选）若克隆其他 GitHub/GitLab 仓库也需要代理，可配置全局代理
-# git config --global http.proxy http://127.0.0.1:7890
-# git config --global https.proxy http://127.0.0.1:7890
-
-# 取消 Hugging Face 专属代理
-git config --global --unset http.https://huggingface.co.proxy
-git config --global --unset https.https://huggingface.co.proxy
-
-# 取消全局代理（若之前配置过）
-# git config --global --unset http.proxy
-# git config --global --unset https.https://huggingface.co.proxy
-
-# 查看是否生效
-git config --global --list
-```
-
 拉取模型 -- **不用 git 代理，Astrill 之前只针对浏览器开启了。。。**
 
 ```bat
@@ -108,6 +290,8 @@ git clone https://huggingface.co/zai-org/SCAIL-Preview
 git lfs pull --include="需要的大文件路径/文件名"
 # 拉取仓库中所有大文件
 git lfs pull
+
+		#git lfs pull --include=Wan2.1_VAE.pth
 ```
 
 ### torch 安装     
@@ -252,6 +436,14 @@ python setup.py bdist_wheel
   ```bat
   pip install flash_attn-2.8.3-cp312-cp312-win_amd64.whl
   ```
+
+### 运行 SCAIL
+
+```bat
+python generate.py --model SCAIL-14B --ckpt_dir SCAIL-Preview --scail_path SCAIL.safetensors --image examples\SCAIL\ref.jpg --pose examples\SCAIL\rendered.mp4 --prompt "the girl is dancing" --target_w 896 --target_h 512
+```
+
+
 
 # 安装Scail Pos
 
