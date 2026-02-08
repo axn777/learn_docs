@@ -53,11 +53,22 @@ pip install -r requirements.txt
 # 安装managerpython main.py --enable-manager
 pip install -r manager_requirements.txt
 
+# 进入目录
+cd custom_nodes
+
+# 下载
+git clone https://github.com/ltdrdata/ComfyUI-Manager comfyui-manager
+
 			# 带着manager启动
 			python main.py --enable-manager
 # 貌似 ComfyUIManager 跟默认的有冲突
 python main.py
 ```
+
+
+
+## TODO 插件
+### EasyAnimate
 
 
 

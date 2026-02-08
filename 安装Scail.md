@@ -412,7 +412,7 @@ exit()
   # Windows PowerShell 使用 winget 安装
   winget show --versions "Microsoft.VisualStudio.2022.Community"
   # 版本选择了 17.14.25
-  winget install -v <具体版本号> "Microsoft.VisualStudio.2022.Community"
+  winget install -v 17.14.25 "Microsoft.VisualStudio.2022.Community"  --source winget
   # 进入Installer，安装VC桌面版，否则没有 cl.exe
   
   "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Visual Studio 2022\Visual Studio Tools\Developer Command Prompt for VS 2022.lnk" -arch=amd64 -host_arch=amd64
