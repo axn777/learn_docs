@@ -54,8 +54,9 @@ pip install mmengine==0.10.4 opencv-python==4.8.1.78 numpy==1.26.4 packaging==24
 		
 
         # see https://github.com/open-mmlab/mmdetection/discussions/12062
-        pip install --extra-index-url https://miropsota.github.io/torch_packages_builder mmcv==2.2.0+pt2.7.0cu128 mmdeploy mmdet mmengine
-
+        pip install --extra-index-url https://miropsota.github.io/torch_packages_builder 
+        
+    	#mmcv==2.2.0+pt2.7.0cu128 mmdeploy mmdet mmengine
 pip install --extra-index-url https://miropsota.github.io/torch_packages_builder mmcv==2.2.0+pt2.7.0cu128 
                 ########## mmdet 2.x <=> mmpose 0.x <=> mmcv 1.x
                 ########## mmdet 3.x <=> mmpose 1.x <=> mmcv 2.x
