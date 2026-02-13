@@ -18,6 +18,7 @@ conda activate comfyui
 
 # nvidia-smi(显卡驱动)：显示当前的CUDA版本
 # 目前nvcc（CUDA驱动，非显卡驱动）是130，暂时安装 cu128 适配
+# 当前torch最高版本大约 2.9.1
 pip install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu128
 ```
 
